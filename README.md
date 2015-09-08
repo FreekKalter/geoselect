@@ -1,5 +1,5 @@
 TODO: i wrote the documentation first, script is still very specific to my usecase
-
+TODO: better name, on second thought geogrouping does not realy describe what it does at this point
 # Geo grouping
 
 A script to select photos from a set based on location.
