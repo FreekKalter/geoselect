@@ -1,3 +1,5 @@
+TODO: i wrote the documentation first, script is still very specific to my usecase
+
 # Geo grouping
 
 A script to select photos from a set based on location.
