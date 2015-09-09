@@ -1,7 +1,8 @@
 from __future__ import print_function
 from math import radians, cos, sin, asin, sqrt
 from path import Path
-from dateutil import parser
+from dateutil import parser as timeparser
+import time
 import exifread
 import re
 import sys
@@ -23,6 +24,15 @@ def haversine(lat1, lon1, lat2, lon2):
     c = 2 * asin(sqrt(a))
     km = 6371 * c
     return km
+
+
+def get_time(filename, tags):
+    # use exif 'Image DateTime' field as the time
+
+    # very fuzzy time machting on filename
+
+    # if above all fails use stat().mt_time (consistent on windows/linux as last modification time)
+    pass
 
 
 def convert_to_decimal(string):
@@ -59,7 +69,7 @@ def build_dict(path, extensions):
             del tags['JPEGThumbnail']
             time_str = re.sub('([a-zA-Z]+)|(-\d+)$', '', f.name.stripext())
             time_str = re.sub('\.', ':', time_str)
-            time = parser.parse(time_str)
+            time = timeparser.parse(time_str)
             tags['TIME'] = time
             files_with_tags[str(f.abspath())] = tags
     return files_with_tags
@@ -97,17 +107,40 @@ def add_based_on_time(files_with_tags, on_location):
 
 def main():
     veilingstr = {'lat': 51.972904, 'long': 5.919421}
-    parser = argparse.ArgumentParser(description='select images bases on location')
-    parser.add_argument('--path', type=str, default='.', help='path to look for image files')
-    parser.add_argument('--extentions', type=str, default='jpg,png,jpeg,tiff',
-                        help='comma separated list of extension to look for in PATH')
-    parser.add_argument('--copy-to', dest='copyto', type=str, default='',
-                        help='path where found photos should be copied')
-    parser.add_argument('--time-based', dest='time_based', action='store_true',
-                        help='also add photos wich themselfs dont have gps information, but are taken in a short\
-                              time before or after one that has (in the right location)')
-    # TODO: give coordinates, or photo with coordinates on the commandline
-    args = parser.parse_args()
+    argparser = argparse.ArgumentParser(description='select images bases on location')
+    argparser.add_argument('location', type=str, default='',
+                           help='location given in decimal degrees like: "40.783068, -73.965350",\
+                                  or a photo with exif gps tags')
+    argparser.add_argument('--path', type=str, default='.', help='path to look for image files')
+    argparser.add_argument('--extentions', type=str, default='jpg,png,jpeg,tiff',
+                           help='comma separated list of extension to look for in PATH')
+    argparser.add_argument('--copy-to', dest='copyto', type=str, default='',
+                           help='path where found photos should be copied')
+    argparser.add_argument('--time-based', dest='time_based', action='store_true',
+                           help='also add photos wich themselfs dont have gps information, but are taken\
+                                 in a short time before or after one that has (in the right location)')
+    args = argparser.parse_args()
+    args.location = args.location.strip()
+    m = re.match('(\d+(\.\d+)?)\s*,\s*(\d+(\.\d+)?)', args.location)
+    location = dict()
+    if m:
+        location['lat'], location['long'] = float(m.group(1)), float(m.group(3))
+    else:
+        p = Path(args.location)
+        if not p.exists():
+            print('Photo given to extract location from: "' + p.abspath() + '" does not exist')
+            sys.exit(1)
+        with open(str(p.abspath()), 'rb') as f:
+            tags = exifread.process_file(f)
+            if 'GPS GPSLongitude' not in tags.keys() or 'GPS GPSLatitude' not in tags.keys():
+                print('Photo does not contain gps information')
+                sys.exit(1)
+            location['lat'] = convert_to_decimal(str(tags['GPS GPSLatitude']))
+            location['long'] = convert_to_decimal(str(tags['GPS GPSLongitude']))
+    if not location:
+        print('Invalid location given')
+        argparser.print_help()
+        sys.exit(1)
     if not Path(args.path).exists():
         print(args.path + ' does not exist')
         sys.exit(1)
@@ -124,6 +157,18 @@ def main():
         print(f)
         if args.copyto != '':
             Path(f).copy2(args.copyto)
+
+
+def main2():
+    p = Path('/media/truecrypt3/Dropbox/Camera Uploads/')
+    for f in p.files('*.jpg'):
+        with open(str(f.abspath()), 'rb') as jpg:
+            tags = exifread.process_file(jpg)
+            if 'Image DateTime' not in tags.keys():
+                filename = re.sub('([a-zA-Z]+)|(-\d+)$', '', f.name.stripext())
+                modified = time.strftime('%Y-%m-%d %H.%M.%S', time.localtime(f.stat().st_mtime))
+                if filename != modified:
+                    print(filename + '\n', modified)
 
 
 if __name__ == '__main__':
