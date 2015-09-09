@@ -4,12 +4,15 @@ from path import Path
 from dateutil import parser
 import exifread
 import re
+import sys
+import argparse
 
 
 def haversine(lat1, lon1, lat2, lon2):
     """
     Calculate the great circle distance between two points
     on the earth (specified in decimal degrees)
+    Thanks to a answer on stackoverflow by Michael Dunn.
     """
     # convert decimal degrees to radians
     lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
@@ -42,7 +45,7 @@ def convert_to_decimal(string):
     return result
 
 
-def build_dict(path):
+def build_dict(path, extensions):
     """
     Scan path for jpg files, and get their exif tags. Build a dict like:
     {'absolute_filename': {'EXIF field': 'exif tag value'}}
@@ -62,23 +65,21 @@ def build_dict(path):
     return files_with_tags
 
 
-def filter_veilingstr(files_with_tags, distance):
+def location_filter(files_with_tags, location, distance):
     '''
     Get photos taken whitin the specified radius from a fixed point.
     '''
-    veilingstr = {'lat': 51.972904, 'long': 5.919421}
-    aan_veilingstr = dict()
+    on_location = dict()
     for f, tags in files_with_tags.items():
         if 'GPS GPSLatitude' in tags:
             lat = convert_to_decimal(str(tags['GPS GPSLatitude']))
             long = convert_to_decimal(str(tags['GPS GPSLongitude']))
-            if haversine(lat, long, veilingstr['lat'], veilingstr['long']) < distance:
-                aan_veilingstr[f] = tags
-                # Path(f).copy2('/media/truecrypt3/Dropbox/Camera Uploads/Elst/')
-    return aan_veilingstr
+            if haversine(lat, long, location['lat'], location['long']) < distance:
+                on_location[f] = tags
+    return on_location
 
 
-def add_based_on_time(files_with_tags, aan_veilingstr):
+def add_based_on_time(files_with_tags, on_location):
     '''
     Sometimes the first photo in a series does not have gps coordinates yet because the phone
     doesnt have a gps-fix yet. To add these photos as well take the list of photos wich where
@@ -86,22 +87,43 @@ def add_based_on_time(files_with_tags, aan_veilingstr):
     because they are almost certainly taken in the same area.
     '''
     to_add = dict()
-    for veiling_f, veiling_tags in aan_veilingstr.items():
+    for veiling_f, veiling_tags in on_location.items():
         for compare_f, compare_tags in files_with_tags.items():
             delta = abs(veiling_tags['TIME'] - compare_tags['TIME'])
-            if (delta.total_seconds() < 10 * 60) and (compare_f not in aan_veilingstr.keys()) and\
-                    ('Image Model' in compare_tags and str(compare_tags['Image Model']) == 'iPhone 5'):
+            if (delta.total_seconds() < 10 * 60) and (compare_f not in on_location.keys()):
                 to_add[compare_f] = compare_tags
     return to_add
 
 
 def main():
-    files_with_tags = build_dict('/media/truecrypt3/Dropbox/Camera Uploads/')
-    aan_veilingstr = filter_veilingstr(files_with_tags, 1)
-    to_add = add_based_on_time(files_with_tags, aan_veilingstr)
-    print(len(to_add))
-    for f in to_add:
-        Path(f).copy2('/home/fkalter/Elst/')
+    veilingstr = {'lat': 51.972904, 'long': 5.919421}
+    parser = argparse.ArgumentParser(description='select images bases on location')
+    parser.add_argument('--path', type=str, default='.', help='path to look for image files')
+    parser.add_argument('--extentions', type=str, default='jpg,png,jpeg,tiff',
+                        help='comma separated list of extension to look for in PATH')
+    parser.add_argument('--copy-to', dest='copyto', type=str, default='',
+                        help='path where found photos should be copied')
+    parser.add_argument('--time-based', dest='time_based', action='store_true',
+                        help='also add photos wich themselfs dont have gps information, but are taken in a short\
+                              time before or after one that has (in the right location)')
+    # TODO: give coordinates, or photo with coordinates on the commandline
+    args = parser.parse_args()
+    if not Path(args.path).exists():
+        print(args.path + ' does not exist')
+        sys.exit(1)
+    if args.copyto != '' and not Path(args.copyto).exists():
+        print(args.copyto + ' does not exist')
+        sys.exit(1)
+    extensions = map(lambda x: x.strip(), args.extentions.split(','))
+    files_with_tags = build_dict(args.path, extensions)
+    on_location = location_filter(files_with_tags, veilingstr, 1)
+    if args.time_based:
+        on_location.update(add_based_on_time(files_with_tags, on_location))
+
+    for f, tags in on_location.items():
+        print(f)
+        if args.copyto != '':
+            Path(f).copy2(args.copyto)
 
 
 if __name__ == '__main__':
