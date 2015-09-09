@@ -107,7 +107,10 @@ def add_based_on_time(files_with_tags, on_location):
 
 def main():
     veilingstr = {'lat': 51.972904, 'long': 5.919421}
-    argparser = argparse.ArgumentParser(description='select images bases on location')
+    desc = 'A script to select photos from a set, based on geographical location. Either via a decimal\
+            latitude/longitude point. Or a photo taken in the desired location, it will look for\
+            exif standerized gps lat- and longitude tags.'
+    argparser = argparse.ArgumentParser(description=desc)
     argparser.add_argument('location', type=str, default='',
                            help='location given in decimal degrees like: "40.783068, -73.965350",\
                                   or a photo with exif gps tags')
