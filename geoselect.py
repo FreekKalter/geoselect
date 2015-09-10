@@ -1,7 +1,6 @@
 from __future__ import print_function
 from math import radians, cos, sin, asin, sqrt
 from path import Path
-from dateutil import parser as timeparser
 import time
 import exifread
 import re
@@ -28,11 +27,17 @@ def haversine(lat1, lon1, lat2, lon2):
 
 def get_time(filename, tags):
     # use exif 'Image DateTime' field as the time
+    if 'Image DateTime' in tags.keys():
+        return time.strptime(str(tags['Image DateTime']), '%Y:%m:%d %H:%M:%S')
 
     # very fuzzy time machting on filename
+    # TODO: very fuzzy part, now it just matches the iphone naming convention
+    m = re.match('^(\d{4}-\d{2}-\d{2} \d{2}\.\d{2}\.\d{2}).*', filename)
+    if m:
+        return time.strptime(m.group(0), '%Y-%m-%d %H.%M.%S')
 
-    # if above all fails use stat().mt_time (consistent on windows/linux as last modification time)
-    pass
+    # if all else fails use stat().st_mtime (consistent on windows/linux as last modification time)
+    return time.localtime(Path(filename).stat().st_mtime)
 
 
 def convert_to_decimal(string):
@@ -67,24 +72,21 @@ def build_dict(path, extensions):
         with open(str(f.abspath()), 'rb') as jpg:
             tags = exifread.process_file(jpg)
             del tags['JPEGThumbnail']
-            time_str = re.sub('([a-zA-Z]+)|(-\d+)$', '', f.name.stripext())
-            time_str = re.sub('\.', ':', time_str)
-            time = timeparser.parse(time_str)
-            tags['TIME'] = time
+            tags['TIME'] = get_time(str(f.abspath()), tags)
             files_with_tags[str(f.abspath())] = tags
     return files_with_tags
 
 
-def location_filter(files_with_tags, location, distance):
+def location_filter(files_with_tags, location, radius):
     '''
-    Get photos taken whitin the specified radius from a fixed point.
+    Get photos taken within the specified radius from a fixed point.
     '''
     on_location = dict()
     for f, tags in files_with_tags.items():
         if 'GPS GPSLatitude' in tags:
             lat = convert_to_decimal(str(tags['GPS GPSLatitude']))
             long = convert_to_decimal(str(tags['GPS GPSLongitude']))
-            if haversine(lat, long, location['lat'], location['long']) < distance:
+            if haversine(lat, long, location['lat'], location['long']) < radius:
                 on_location[f] = tags
     return on_location
 
@@ -122,6 +124,8 @@ def main():
     argparser.add_argument('--time-based', dest='time_based', action='store_true',
                            help='also add photos wich themselfs dont have gps information, but are taken\
                                  in a short time before or after one that has (in the right location)')
+    argparser.add_argument('--radius', type=int, default=1, help='radius of area tin kilometers around')
+    # TODO: add randius argument
     args = argparser.parse_args()
     args.location = args.location.strip()
     m = re.match('(\d+(\.\d+)?)\s*,\s*(\d+(\.\d+)?)', args.location)
@@ -152,7 +156,7 @@ def main():
         sys.exit(1)
     extensions = map(lambda x: x.strip(), args.extentions.split(','))
     files_with_tags = build_dict(args.path, extensions)
-    on_location = location_filter(files_with_tags, veilingstr, 1)
+    on_location = location_filter(files_with_tags, veilingstr, args.radius)
     if args.time_based:
         on_location.update(add_based_on_time(files_with_tags, on_location))
 
@@ -160,18 +164,6 @@ def main():
         print(f)
         if args.copyto != '':
             Path(f).copy2(args.copyto)
-
-
-def main2():
-    p = Path('/media/truecrypt3/Dropbox/Camera Uploads/')
-    for f in p.files('*.jpg'):
-        with open(str(f.abspath()), 'rb') as jpg:
-            tags = exifread.process_file(jpg)
-            if 'Image DateTime' not in tags.keys():
-                filename = re.sub('([a-zA-Z]+)|(-\d+)$', '', f.name.stripext())
-                modified = time.strftime('%Y-%m-%d %H.%M.%S', time.localtime(f.stat().st_mtime))
-                if filename != modified:
-                    print(filename + '\n', modified)
 
 
 if __name__ == '__main__':
