@@ -79,7 +79,7 @@ def build_dict(path, extensions):
 
 def location_filter(files_with_tags, location, radius):
     '''
-    Get photos taken within the specified radius from a fixed point.
+    Get photos taken within the specified radius from a given point.
     '''
     on_location = dict()
     for f, tags in files_with_tags.items():
@@ -93,8 +93,8 @@ def location_filter(files_with_tags, location, radius):
 
 def add_based_on_time(files_with_tags, on_location):
     '''
-    Sometimes the first photo in a series does not have gps coordinates yet because the phone
-    doesnt have a gps-fix yet. To add these photos as well take the list of photos wich where
+    Sometimes the first photo in a series does not have gps coordinates because the phone
+    doesnt have a gps-fix yet. To add these photos as well we take the list of photos wich where
     taken in the right location. Then add any photos taken whitin 10 minutes of these photos,
     because they are almost certainly taken in the same area.
     '''
@@ -108,7 +108,6 @@ def add_based_on_time(files_with_tags, on_location):
 
 
 def main():
-    veilingstr = {'lat': 51.972904, 'long': 5.919421}
     desc = 'A script to select photos from a set, based on geographical location. Either via a decimal\
             latitude/longitude point. Or a photo taken in the desired location, it will look for\
             exif standerized gps lat- and longitude tags.'
@@ -128,7 +127,8 @@ def main():
     # TODO: add randius argument
     args = argparser.parse_args()
     args.location = args.location.strip()
-    m = re.match('(\d+(\.\d+)?)\s*,\s*(\d+(\.\d+)?)', args.location)
+    print(args.location)
+    m = re.match('(-?\d+(\.\d+)?)\s*,\s*(-?\d+(\.\d+)?)', args.location)
     location = dict()
     if m:
         location['lat'], location['long'] = float(m.group(1)), float(m.group(3))
@@ -156,7 +156,7 @@ def main():
         sys.exit(1)
     extensions = map(lambda x: x.strip(), args.extentions.split(','))
     files_with_tags = build_dict(args.path, extensions)
-    on_location = location_filter(files_with_tags, veilingstr, args.radius)
+    on_location = location_filter(files_with_tags, location, args.radius)
     if args.time_based:
         on_location.update(add_based_on_time(files_with_tags, on_location))
 
