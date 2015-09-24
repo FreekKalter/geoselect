@@ -16,12 +16,11 @@ Or a photo taken in the desired location, it will look for exif standerized gps 
 ## Using
 
 By default geoselect will search in the current directory for the following file extensions: jpg, jpeg, gif, bmp, png. It will print the filenames to standard output.
-LOCATION can be a "latitude,longitude" specified in decimal degrees like: "41.40338, 2.17403". Or it can be a photo with exif gps coordinates, wich will find photos
-taken at the same location. Within a specifie radius (default: 1 km).
+LOCATION can be a "latitude,longitude" specified in decimal degrees like: "41.40338, 2.17403". Or it can be a path to a photo with exif gps coordinates, it will then search for photos taken at the same location.
+Within a specifie radius (default: 1 km).
 
-A (expiremental) feature uses the time a picture is taken to "gues" at wich location it is made. Sometimes the device used to take a picture takes a while to get a 'gps fix'.
-So it might not register the gps coordinates for the first picture in a series. The ```-- time-based```option looks for any pictures taken in a short time before or after 
-a picture with the specified location is taken.
+A (expiremental) feature uses the time a picture is taken to "gues" at wich location it is made. Sometimes the device used to make the picture takes a while to get a 'gps fix'.
+So it might not register the gps coordinates for the first picture in a series. The ```-- time-based```option looks for any pictures taken in a short time before or after a picture with the specified location is taken. Because it is very likely pictures taken very shortly after each ohter are taken at roughly the same location.
 
 ```
 usage: geoselect.py [-h] [--path PATH] [--extentions EXTENTIONS] [--copy-to COPYTO] [--time-based] location
