@@ -8,8 +8,13 @@ Or a photo taken in the desired location, it will look for exif standerized gps 
     # clone this repo
     clone https://github.com/FreekKalter/geoselect.git
     cd geoselect
+
+    # initialize virtual environment (optional)
+    virtualenv venv
+    source venv/bin/activate
+
     # install requirements
-    pip install -r
+    pip install -r requirements.txt
 
 
 *TODO: use pip to install*
