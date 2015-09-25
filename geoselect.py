@@ -13,6 +13,7 @@ def haversine(lat1, lon1, lat2, lon2):
     Calculate the great circle distance between two points
     on the earth (specified in decimal degrees)
     Thanks to a answer on stackoverflow by Michael Dunn.
+    http://stackoverflow.com/questions/4913349/haversine-formula-in-python-bearing-and-distance-between-two-gps-points
     """
     # convert decimal degrees to radians
     lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
