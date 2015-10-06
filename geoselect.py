@@ -27,6 +27,10 @@ def haversine(lat1, lon1, lat2, lon2):
 
 
 def get_time(filename, tags):
+    """
+    Get most reliable timestamp from a picture, running down a couple of options.
+    Filename, exif tags, modification time.
+    """
     # use exif 'Image DateTime' field as the time
     if 'Image DateTime' in tags.keys():
         return time.strptime(str(tags['Image DateTime']), '%Y:%m:%d %H:%M:%S')
