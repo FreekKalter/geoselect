@@ -119,7 +119,7 @@ def main():
     argparser = argparse.ArgumentParser(description=desc)
     argparser.add_argument('location', type=str, default='',
                            help='location given in decimal degrees like: "40.783068, -73.965350",\
-                                  or a photo with exif gps tags')
+                                  or a path to a photo with exif gps info')
     argparser.add_argument('--path', type=str, default='.', help='path to look for image files')
     argparser.add_argument('--extentions', type=str, default='jpg,png,jpeg,tiff',
                            help='comma separated list of extension to look for in PATH')
