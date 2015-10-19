@@ -7,7 +7,7 @@ def long_description():
 
 setup(
     name='geoselect',
-    version='0.1',
+    version='0.2.0',
     py_modules=['geoselect'],
     install_requires=[
         'ExifRead>2.0,<3.0',

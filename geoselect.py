@@ -8,7 +8,7 @@ import sys
 import argparse
 
 
-VERSION = 'v0.1.0'
+VERSION = '0.2.0'
 
 
 def haversine(lat1, lon1, lat2, lon2):
@@ -137,7 +137,7 @@ def main():
                                  in a short time before or after one that has (in the right location)')
     argparser.add_argument('--radius', type=int, default=1, help='radius of area (in kilometers) to select\
                            photos from')
-    argparser.add_argument('-V', '--version', action='version', version='%(prog)s ' + VERSION)
+    argparser.add_argument('-V', '--version', action='version', version='%(prog)s v' + VERSION)
     args = argparser.parse_args()
     args.location = args.location.strip()
     m = re.match('(-?\d+(\.\d+)?)\s*,\s*(-?\d+(\.\d+)?)', args.location)
