@@ -8,7 +8,7 @@ import sys
 import argparse
 
 
-VERSION = '0.2.0'
+VERSION = '0.2.1'
 
 
 def haversine(lat1, lon1, lat2, lon2):

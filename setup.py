@@ -1,13 +1,15 @@
 from setuptools import setup
+import subprocess
+import os
 
 
 def long_description():
-    with open('README.md', 'r') as readme:
-        return readme.read()
+    basedir = os.path.dirname(__file__)
+    return subprocess.check_output(['pandoc', '--from=markdown', '--to=rst', os.path.join(basedir, 'README.md')])
 
 setup(
     name='geoselect',
-    version='0.2.0',
+    version='0.2.1',
     py_modules=['geoselect'],
     install_requires=[
         'ExifRead>2.0,<3.0',
