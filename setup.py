@@ -1,6 +1,10 @@
 from setuptools import setup
 
 
+def long_description():
+    with open('README.md', 'r') as readme:
+        return readme.read()
+
 setup(
     name='geoselect',
     version='0.1',
@@ -19,7 +23,17 @@ setup(
     author='Freek Kalter',
     author_email='freek@kalteronline.org',
     description='A script to select photos from a set, based on geographical location.',
+    long_description=long_description(),
     license='GPL v3',
     keywords='gps photos filter',
     url='https://github.com/FreekKalter/geoselect',
+
+    classifiers=[
+        'Development Status :: 3 - Alpha',
+        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+        'Environment :: Console',
+        'Programming Language :: Python :: 2.7',
+        'Topic :: Utilities',
+        'Topic :: Multimedia',
+    ],
 )
