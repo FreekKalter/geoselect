@@ -5,19 +5,25 @@ Or a photo taken in the desired location, it will look for exif standerized gps 
 
 ## Installing
 
+### Pip
+The easiest way is to use pip to download and install the script.
+
+    pip install geoselect
+
+
+### Get (latest) source
+
     # clone this repo
     clone https://github.com/FreekKalter/geoselect.git
     cd geoselect
 
-    # initialize virtual environment (optional)
+    # initialize virtual environment (optional, but recommended)
     virtualenv venv
     source venv/bin/activate
 
-    # install requirements
-    pip install -r requirements.txt
+    # install (--editable to hack on code whithout running pip install again)
+    pip install --editable .
 
-
-*TODO: use pip to install*
 ## Using
 
 By default geoselect will search in the current directory for the following file extensions: jpg, jpeg, gif, bmp, png. It will print the filenames to standard output.
