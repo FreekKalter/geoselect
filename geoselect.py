@@ -68,18 +68,21 @@ def convert_to_decimal(string):
     return result
 
 
-def build_dict(path, extensions):
+def build_dict(img_iterator):
     """
-    Scan path for jpg files, and get their exif tags. Build a dict like:
+    Build a dict from files from iterator.
     {'absolute_filename': {'EXIF field': 'exif tag value'}}
     Parse DateTime from filename in the same loop, added as 'TIME'.
     """
-    p = Path(path)
     files_with_tags = dict()
-    for f in p.files('*.jpg'):
+    for f in img_iterator:
         with open(str(f.abspath()), 'rb') as jpg:
             tags = exifread.process_file(jpg)
-            del tags['JPEGThumbnail']
+            # Dont waste space on thumbnails
+            try:
+                del tags['JPEGThumbnail']
+            except KeyError:
+                pass
             tags['TIME'] = get_time(str(f.abspath()), tags)
             files_with_tags[str(f.abspath())] = tags
     return files_with_tags
@@ -123,7 +126,8 @@ def main():
     argparser.add_argument('location', type=str, default='',
                            help='location given in decimal degrees like: "40.783068, -73.965350",\
                                   or a path to a photo with exif gps info')
-    argparser.add_argument('--path', type=str, default='.', help='path to look for image files')
+    argparser.add_argument('--path', type=str, help='path to look for image files, if not set files\
+                           will be taken from stdin')
     argparser.add_argument('--extentions', type=str, default='jpg,png,jpeg,tiff',
                            help='comma separated list of extension to look for in PATH')
     argparser.add_argument('--copy-to', dest='copyto', type=str, default='',
@@ -136,7 +140,6 @@ def main():
     argparser.add_argument('-V', '--version', action='version', version='%(prog)s ' + VERSION)
     args = argparser.parse_args()
     args.location = args.location.strip()
-    print(args.location)
     m = re.match('(-?\d+(\.\d+)?)\s*,\s*(-?\d+(\.\d+)?)', args.location)
     location = dict()
     if m:
@@ -157,17 +160,36 @@ def main():
         print('Invalid location given')
         argparser.print_help()
         sys.exit(1)
-    if not Path(args.path).exists():
-        print(args.path + ' does not exist')
-        sys.exit(1)
-    if args.copyto != '' and not Path(args.copyto).exists():
-        print(args.copyto + ' does not exist')
-        sys.exit(1)
+
     extensions = map(lambda x: x.strip(), args.extentions.split(','))
-    files_with_tags = build_dict(args.path, extensions)
+    # Files to be processed are either taken from a path specified on the commandline,
+    # or from stdinput. The build_dict functions takes an iterator to loop over the files.
+    if args.path:
+        p = Path(args.path)
+        if not p.exists():
+            print(args.path + ' does not exist')
+            sys.exit(1)
+        else:
+            images = []
+            for e in extensions:
+                images += p.files('*.' + e)
+            files_with_tags = build_dict(iter(images))
+    else:
+        def readline_generator():
+            while 1:
+                line = sys.stdin.readline()
+                if not line:
+                    break
+                yield Path(line.strip())
+        files_with_tags = build_dict(readline_generator())
+
     on_location = location_filter(files_with_tags, location, args.radius)
     if args.time_based:
         on_location.update(add_based_on_time(files_with_tags, on_location))
+
+    if args.copyto != '' and not Path(args.copyto).exists():
+        print(args.copyto + ' does not exist')
+        sys.exit(1)
 
     for f, tags in on_location.items():
         print(f)
