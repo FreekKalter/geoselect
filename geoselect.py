@@ -8,6 +8,9 @@ import sys
 import argparse
 
 
+VERSION = 'v0.1.0'
+
+
 def haversine(lat1, lon1, lat2, lon2):
     """
     Calculate the great circle distance between two points
@@ -128,8 +131,9 @@ def main():
     argparser.add_argument('--time-based', dest='time_based', action='store_true',
                            help='also add photos wich themselfs dont have gps information, but are taken\
                                  in a short time before or after one that has (in the right location)')
-    argparser.add_argument('--radius', type=int, default=1, help='radius of area tin kilometers around')
-    # TODO: add randius argument
+    argparser.add_argument('--radius', type=int, default=1, help='radius of area (in kilometers) to select\
+                           photos from')
+    argparser.add_argument('-V', '--version', action='version', version='%(prog)s ' + VERSION)
     args = argparser.parse_args()
     args.location = args.location.strip()
     print(args.location)
