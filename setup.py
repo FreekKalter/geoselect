@@ -5,6 +5,7 @@ import os
 
 def long_description():
     basedir = os.path.dirname(__file__)
+    #TODO: find a wat to do this withou pandoc, or include pandoc
     return subprocess.check_output(['pandoc', '--from=markdown', '--to=rst', os.path.join(basedir, 'README.md')])
 
 setup(
