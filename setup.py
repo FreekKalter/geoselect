@@ -1,12 +1,11 @@
 from setuptools import setup
-import subprocess
 import os
 
 
 def long_description():
     basedir = os.path.dirname(__file__)
-    #TODO: find a wat to do this withou pandoc, or include pandoc
-    return subprocess.check_output(['pandoc', '--from=markdown', '--to=rst', os.path.join(basedir, 'README.md')])
+    with open(os.path.join(basedir, 'README.rst'), 'r') as readme:
+        return readme.read()
 
 setup(
     name='geoselect',

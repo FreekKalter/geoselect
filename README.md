@@ -42,7 +42,6 @@ A (expiremental) feature uses the time a picture is taken to *gues* at wich loca
 So it might not register the gps coordinates for the first picture in a series. The `-- time-based` option looks for any pictures taken in a short time before or after a picture with the specified location is taken. Because it is very likely pictures taken very shortly after each ohter are taken at roughly the same location.
 
 ```
-
 usage: geoselect.py [-h] [--path PATH] [--extentions EXTENTIONS] [--copy-to COPYTO] [--time-based] [--radius RADIUS]
                     [-V]
                     location
