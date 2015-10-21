@@ -1,15 +1,23 @@
 from setuptools import setup
 import os
+import re
+
+basedir = os.path.dirname(__file__)
 
 
 def long_description():
-    basedir = os.path.dirname(__file__)
     with open(os.path.join(basedir, 'README.rst'), 'r') as readme:
         return readme.read()
 
+
+def get_version():
+    with open(os.path.join(basedir, 'geoselect.py'), 'r') as fd:
+        return re.search(r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]',
+                         fd.read(), re.MULTILINE).group(1)
+
 setup(
     name='geoselect',
-    version='0.2.2',
+    version=get_version(),
     py_modules=['geoselect'],
     install_requires=[
         'ExifRead>2.0,<3.0',
