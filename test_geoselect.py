@@ -7,6 +7,17 @@ def test_convert_to_decimal():
     assert geoselect.convert_to_decimal('[51, 4, 1234/34]') == 51.07674836601308
 
 
+def test_convert_to_decimal_wrong():
+    with pytest.raises(ValueError):
+        geoselect.convert_to_decimal('51, 4,')
+    with pytest.raises(ValueError):
+        geoselect.convert_to_decimal('jemoeder')
+    with pytest.raises(ValueError):
+        geoselect.convert_to_decimal('[1222,12312,123123]')
+    with pytest.raises(ValueError):
+        geoselect.convert_to_decimal('1221/22323, 3,3')
+
+
 def test_haversine_same_point_zero():
     assert geoselect.haversine(40.764276, -73.975189, 40.764276, -73.975189) == 0
 

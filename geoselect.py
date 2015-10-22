@@ -65,6 +65,16 @@ def convert_to_decimal(string):
     Decode the exif-gps format into a decimal point.
     '[51, 4, 1234/34]'  ->  51.074948366
     """
+    number_or_fraction = '(?:\d{1,2}) | (?:\d{1,10} \\ \d{1,10})'
+    m = re.compile('''\[?\s?            # opening bracket
+                    \d{{1,2}}\s?,\s?    # first number
+                    {0} \s?,\s?         # second number (can be a fraction)
+                    {0} \s?,\s?         # third number (can be a fraction)
+                    \]?\s?              # closing bracket
+                    '''.format(number_or_fraction), re.VERBOSE)
+    if not m.match(string):
+        raise ValueError
+
     h, m, s = re.sub('\[|\]', '', string).split(', ')
     result = int(h)
     if '/' in m:
@@ -107,13 +117,16 @@ def location_filter(files_with_tags, location, radius):
     on_location = dict()
     for f, tags in files_with_tags.items():
         if 'GPS GPSLatitude' in tags:
-            lat = convert_to_decimal(str(tags['GPS GPSLatitude']))
-            long = convert_to_decimal(str(tags['GPS GPSLongitude']))
+            try:
+                lat = convert_to_decimal(str(tags['GPS GPSLatitude']))
+                long = convert_to_decimal(str(tags['GPS GPSLongitude']))
+            except ValueError:
+                print('{0} has invalid gps info'.format(f))
             try:
                 if haversine(lat, long, location['lat'], location['long']) < radius:
                     on_location[f] = tags
             except InvalidCoordinate:
-                print('%s has invalid gps info', f)
+                print('{0} has invalid gps info'.format(f))
     return on_location
 
 
