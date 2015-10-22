@@ -34,6 +34,13 @@ Get (latest) source
     # install (--editable to hack on code whithout running pip install again)
     pip install --editable .
 
+Testing
+~~~~~~~
+
+::
+
+    py.test --ignore=venv
+
 Using
 -----
 

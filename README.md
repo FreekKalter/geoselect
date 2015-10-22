@@ -24,6 +24,11 @@ The easiest way is to use pip to download and install the script.
     # install (--editable to hack on code whithout running pip install again)
     pip install --editable .
 
+
+### Testing
+
+    py.test --ignore=venv
+
 ## Using
 
 There are 2 ways to specify the location to select on.  LOCATION can be a "latitude,longitude" specified in decimal degrees like: "41.40338, 2.17403".
