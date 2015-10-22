@@ -11,6 +11,14 @@ import argparse
 __version__ = '0.2.2'
 
 
+class InvalidCoordinate(Exception):
+    def __init__(self, value):
+        self.value = value
+
+    def __str__(self):
+        return repr(self.value)
+
+
 def haversine(lat1, lon1, lat2, lon2):
     """
     Calculate the great circle distance between two points
@@ -18,6 +26,10 @@ def haversine(lat1, lon1, lat2, lon2):
     Thanks to a answer on stackoverflow by Michael Dunn.
     http://stackoverflow.com/questions/4913349/haversine-formula-in-python-bearing-and-distance-between-two-gps-points
     """
+    if abs(lat1) > 90 or abs(lat2) > 90:
+        raise InvalidCoordinate('invalid latitude')
+    if abs(lon1) > 180 or abs(lon2) > 180:
+        raise InvalidCoordinate('invalid longitude')
     # convert decimal degrees to radians
     lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
     # haversine formula
@@ -97,8 +109,11 @@ def location_filter(files_with_tags, location, radius):
         if 'GPS GPSLatitude' in tags:
             lat = convert_to_decimal(str(tags['GPS GPSLatitude']))
             long = convert_to_decimal(str(tags['GPS GPSLongitude']))
-            if haversine(lat, long, location['lat'], location['long']) < radius:
-                on_location[f] = tags
+            try:
+                if haversine(lat, long, location['lat'], location['long']) < radius:
+                    on_location[f] = tags
+            except InvalidCoordinate:
+                print('%s has invalid gps info', f)
     return on_location
 
 
