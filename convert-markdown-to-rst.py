@@ -4,8 +4,9 @@ import subprocess
 import sys
 import re
 
-out = subprocess.check_output(['git', 'diff', '--cached', '--name-only'])
-if 'README.md' in out:
+files_changed = subprocess.check_output(['git', 'diff', '--cached', '--name-only'])
+# Convert Readme.md to readme.rst (for pypi documentation), run only when Readme.md has changed.
+if 'README.md' in files_changed:
     try:
         subprocess.check_output(['pandoc', '--from=markdown', '--to=rst', '--out=README.rst', 'README.md'])
     except subprocess.CalledProcessError as e:
@@ -19,10 +20,11 @@ if 'README.md' in out:
     else:
         print('pandoc run succesfully, README.rst added')
 
+# Run python test suite before commiting *.py files
 python_regex = re.compile('.*\.py$', re.IGNORECASE)
-if [f for f in out.split('\n') if python_regex.match(f)]:
+if [f for f in files_changed.split('\n') if python_regex.match(f)]:
     try:
-        subprocess.check_output(['py.test', '--ignore=venv'])
+        subprocess.check_output(['tox'])
     except subprocess.CalledProcessError as e:
         print(e.output)
         sys.exit(1)
