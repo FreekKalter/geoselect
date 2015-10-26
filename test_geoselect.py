@@ -22,7 +22,7 @@ def test_haversine_same_point_zero():
     assert geoselect.haversine(40.764276, -73.975189, 40.764276, -73.975189) == 0
 
 
-def test_haversine_order_is_irralevan():
+def test_haversine_order_is_irrelevant():
     assert geoselect.haversine(40.764276, -73.975189, 40.7988811, -73.9591938) ==\
         geoselect.haversine(40.7988811, -73.9591938, 40.764276, -73.975189)
 
