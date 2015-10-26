@@ -6,7 +6,6 @@ import re
 
 out = subprocess.check_output(['git', 'diff', '--cached', '--name-only'])
 if 'README.md' in out:
-    print('calling pandoc')
     try:
         subprocess.check_output(['pandoc', '--from=markdown', '--to=rst', '--out=README.rst', 'README.md'])
     except subprocess.CalledProcessError as e:
@@ -17,6 +16,8 @@ if 'README.md' in out:
     except subprocess.CalledProcessError as e:
         print(e.output)
         sys.exit(1)
+    else:
+        print('pandoc run succesfully, README.rst added')
 
 python_regex = re.compile('.*\.py$', re.IGNORECASE)
 if [f for f in out.split('\n') if python_regex.match(f)]:
@@ -25,3 +26,5 @@ if [f for f in out.split('\n') if python_regex.match(f)]:
     except subprocess.CalledProcessError as e:
         print(e.output)
         sys.exit(1)
+    else:
+        print('python tests succeeded')
