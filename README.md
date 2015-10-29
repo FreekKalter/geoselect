@@ -1,7 +1,13 @@
 # geoselect
 
 A script to select photos from a set, based on geographical location. Either via a decimal latitude/longitude point.
+
 Or a photo taken in the desired location, it will look for exif standerized gps lat- and longitude tags.
+
+*TODO:*
+- use consistent naming of the program/moduel/script (choose one and use it everyhwere)
+    - use the same intro in the programs help description
+- A better (short) introduction. (Write like your talking to a friend)
 
 ## Installing
 
