@@ -22,7 +22,7 @@ setup(
     install_requires=[
         'ExifRead>2.0,<3.0',
         'path.py>8.0,<9.0',
-        'wheel==0.24.0',
+        'wheel==0.38.1',
     ],
     entry_points='''
         [console_scripts]
